@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Установка времени</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="datetime-local"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-back {
+            background: #666;
+        }
+        .current-time {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 18px;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Установка даты и времени</h1>
+        
+        <div class="current-time" id="currentTime">
+            Загрузка...
+        </div>
+        
+        <form action="/SetTime" method="get">
+            <input type="datetime-local" id="dateTime" name="dateTime" required>
+            <input type="hidden" id="weekday" name="weekday" value="">
+            <br>
+            <button type="submit" class="btn">✅ Установить</button>
+        </form>
+
+        <a href="/" class="btn btn-back">🏠 На главную</a>
+        
+        <div class="note">
+            Время на устройстве будет синхронизировано с выбранным
+        </div>
+    </div>
+    
+    <script>
+        function getWeekday(year, month, day) {
+            // Алгоритм Конгресса
+            if (month < 3) {
+                month += 12;
+                year -= 1;
+            }
+            let k = year % 100;
+            let j = Math.floor(year / 100);
+            let h = (day + Math.floor(13*(month+1)/5) + k + Math.floor(k/4) + Math.floor(j/4) + 5*j) % 7;
+            
+            // h: 0=сб, 1=вс, 2=пн, 3=вт, 4=ср, 5=чт, 6=пт
+            switch(h) {
+                case 0: return 6;  // сб
+                case 1: return 7;  // вс
+                case 2: return 1;  // пн
+                case 3: return 2;  // вт
+                case 4: return 3;  // ср
+                case 5: return 4;  // чт
+                case 6: return 5;  // пт
+                default: return 1;
+            }
+        }
+        
+        document.getElementById('dateTime').addEventListener('change', function() {
+            let datetime = this.value;
+            if (datetime) {
+                let year = parseInt(datetime.substring(0, 4));
+                let month = parseInt(datetime.substring(5, 7));
+                let day = parseInt(datetime.substring(8, 10));
+                let weekday = getWeekday(year, month, day);
+                document.getElementById('weekday').value = weekday;
+                console.log("Set weekday: " + weekday);
+            }
+        });
+        
+        function updateCurrentTime() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('currentTime').innerHTML = '🕐 Текущее время: ' + data.time;
+                })
+                .catch(error => {
+                    document.getElementById('currentTime').innerHTML = '🕐 Не удалось получить время';
+                });
+        }
+        
+        function setDefaultDateTime() {
+            let now = new Date();
+            let year = now.getFullYear();
+            let month = String(now.getMonth() + 1).padStart(2, '0');
+            let day = String(now.getDate()).padStart(2, '0');
+            let hours = String(now.getHours()).padStart(2, '0');
+            let minutes = String(now.getMinutes()).padStart(2, '0');
+            let defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('dateTime').value = defaultDateTime;
+            
+            // Триггерим событие change, чтобы вычислить день недели
+            let event = new Event('change');
+            document.getElementById('dateTime').dispatchEvent(event);
+        }
+        
+        updateCurrentTime();
+        setDefaultDateTime();
+        setInterval(updateCurrentTime, 1000);
+    </script>
+</body>
+</html>

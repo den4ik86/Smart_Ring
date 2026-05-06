@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>
+    <title>Управление звонками</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin: 0 0 20px 0;
+        }
+        .status {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .btn {
+            display: block;
+            background: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 14px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-red {
+            background: #f44336;
+        }
+        .btn-red:hover {
+            background: #da190b;
+        }
+        .btn-orange {
+            background: #ff9800;
+        }
+        .btn-orange:hover {
+            background: #e68900;
+        }
+        .btn-blue {
+            background: #2196F3;
+        }
+        .btn-blue:hover {
+            background: #0b7dda;
+        }
+        .btn-purple {
+            background: #9c27b0;
+        }
+        .btn-purple:hover {
+            background: #7b1fa2;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 0;
+            border-radius: 12px;
+        }
+        .section h3 {
+            margin: 0 0 12px 0;
+            color: #555;
+            font-size: 18px;
+            text-align: center;
+        }
+        .music-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .music-buttons .btn {
+            flex: 1;
+            margin: 0;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 10px 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .current-lesson {
+            background: #ffeb3b !important;
+            font-weight: bold;
+        }
+        .current-lesson td {
+            background: #ffeb3b !important;
+        }
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .profile-btn {
+            background: #9c27b0;
+            color: white;
+            text-align: center;
+            padding: 10px 8px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .profile-btn:hover {
+            background: #7b1fa2;
+        }
+        .profile-btn.active {
+            background: #4CAF50;
+        }
+        .alarm-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .alarm-buttons .btn {
+            flex: 1;
+            margin: 0;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+        .note {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏫 Школьные звонки</h1>
+        
+        <div class="status" id="timeStatus">
+            Загрузка времени...
+        </div>
+        
+        <div class="menu">
+            <a href="/SetTimeWeb" class="btn btn-blue">⏰ Установить время</a>
+            <a href="/upload" class="btn btn-orange">📁 Загрузка файлов</a>
+            <div class="alarm-buttons">
+                <a href="/fire" class="btn btn-red" onclick="return confirm('🔥 ВНИМАНИЕ! Вы уверены, что хотите активировать ПОЖАРНУЮ тревогу?')">🔥 ПОЖАР</a>
+                <a href="/terr" class="btn btn-orange" onclick="return confirm('⚠️ ВНИМАНИЕ! Вы уверены, что хотите активировать ТЕРРОРИСТИЧЕСКУЮ тревогу?')">⚠️ ТЕРРОР</a>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>📅 Расписание звонков</h3>
+            <div id="schedule" style="overflow-x: auto;">
+                 <table>
+                    <thead>
+                        <tr><th>Урок</th><th>Начало</th><th>Окончание</th></tr>
+                    </thead>
+                    <tbody id="scheduleBody">
+                        <tr><td colspan="3" style="text-align: center;">Загрузка...</td></tr>
+                    </tbody>
+                 </table>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🎵 Музыка на переменах</h3>
+            <div class="music-buttons">
+                <a href="/music_on" class="btn btn-blue" id="musicOnBtn">▶️ Включить</a>
+                <a href="/music_off" class="btn btn-red" id="musicOffBtn">⏹️ Выключить</a>
+            </div>
+            <div class="music-buttons" style="margin-top: 10px;">
+                <a href="/music_random" class="btn btn-orange" id="randomBtn">🎲 Произвольный</a>
+                <a href="/music_seq" class="btn btn-orange" id="seqBtn">📋 Последовательный</a>
+            </div>
+            <div class="status" id="musicStatus" style="margin-top: 12px; font-size: 14px; background: #f0f0f0;">
+                🎵 Музыка: выключена
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>📁 Выбор профиля расписания</h3>
+            <div class="profile-grid" id="profileGrid">
+                <a href="/SetTimer1" class="profile-btn" id="prof1">Профиль 1 (Пн)</a>
+                <a href="/SetTimer2" class="profile-btn" id="prof2">Профиль 2 (Вт)</a>
+                <a href="/SetTimer3" class="profile-btn" id="prof3">Профиль 3 (Ср)</a>
+                <a href="/SetTimer4" class="profile-btn" id="prof4">Профиль 4 (Чт)</a>
+                <a href="/SetTimer5" class="profile-btn" id="prof5">Профиль 5 (Пт)</a>
+                <a href="/SetTimer6" class="profile-btn" id="prof6">Профиль 6 (Сб)</a>
+                <a href="/SetTimer7" class="profile-btn" id="prof7">Профиль 7 (Вс)</a>
+            </div>
+            <div class="status" id="profileStatus" style="margin-top: 12px; font-size: 14px;">
+                Активный профиль: загрузка...
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="note">
+            ⏰ После окончания урока автоматически играет музыка (если включена)<br>
+            📱 Сайт оптимизирован для мобильных устройств
+        </div>
+    </div>
+    
+    <script>
+        let currentMusicStatus = false;
+        let currentMusicMode = 'random';
+        
+        function updateMusicDisplay() {
+            let statusText = currentMusicStatus ? '🎵 Музыка: ВКЛЮЧЕНА' : '🎵 Музыка: ВЫКЛЮЧЕНА';
+            let modeText = currentMusicMode === 'random' ? ' (произвольный)' : ' (последовательный)';
+            document.getElementById('musicStatus').innerHTML = statusText + modeText;
+        }
+        
+        function loadSchedule() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    let now = new Date();
+                    let currentMinutes = now.getHours() * 60 + now.getMinutes();
+                    
+                    const lessons = [
+                        { num: 1, start: data.start1, stop: data.stop1 },
+                        { num: 2, start: data.start2, stop: data.stop2 },
+                        { num: 3, start: data.start3, stop: data.stop3 },
+                        { num: 4, start: data.start4, stop: data.stop4 },
+                        { num: 5, start: data.start5, stop: data.stop5 },
+                        { num: 6, start: data.start6, stop: data.stop6 },
+                        { num: 7, start: data.start7, stop: data.stop7 },
+                        { num: 8, start: data.start8, stop: data.stop8 },
+                        { num: 9, start: data.start9, stop: data.stop9 },
+                        { num: 10, start: data.start10, stop: data.stop10 },
+                        { num: 11, start: data.start11, stop: data.stop11 },
+                        { num: 12, start: data.start12, stop: data.stop12 }
+                    ];
+                    
+                    let currentLesson = -1;
+                    for (let i = 0; i < lessons.length; i++) {
+                        if (lessons[i].start && lessons[i].start !== "" && lessons[i].start !== ":") {
+                            let startParts = lessons[i].start.split(':');
+                            let stopParts = lessons[i].stop.split(':');
+                            
+                            let startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+                            let stopMinutes = parseInt(stopParts[0]) * 60 + parseInt(stopParts[1]);
+                            
+                            if (currentMinutes >= startMinutes && currentMinutes <= stopMinutes) {
+                                currentLesson = i;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    let html = '';
+                    let hasData = false;
+                    
+                    for (let i = 0; i < lessons.length; i++) {
+                        if (lessons[i].start && lessons[i].start !== "" && lessons[i].start !== ":") {
+                            hasData = true;
+                            let rowClass = (i === currentLesson) ? 'class="current-lesson"' : '';
+                            html += `<tr ${rowClass}>
+                                <td style="padding: 10px 8px;">${lessons[i].num}</td>
+                                <td style="padding: 10px 8px;">${lessons[i].start}</td>
+                                <td style="padding: 10px 8px;">${lessons[i].stop}</td>
+                            </tr>`;
+                        }
+                    }
+                    
+                    if (!hasData) {
+                        html = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Расписание не настроено<br>Нажмите на профиль для настройки</td></tr>';
+                    }
+                    
+                    document.getElementById('scheduleBody').innerHTML = html;
+                    document.getElementById('timeStatus').innerHTML = '🕐 ' + data.time;
+                    
+                    let pointer = data.pointer;
+                    const profileMap = [
+                        { index: 1, id: 'prof1', name: 'Профиль 1 (Пн)' },
+                        { index: 2, id: 'prof2', name: 'Профиль 2 (Вт)' },
+                        { index: 3, id: 'prof3', name: 'Профиль 3 (Ср)' },
+                        { index: 4, id: 'prof4', name: 'Профиль 4 (Чт)' },
+                        { index: 5, id: 'prof5', name: 'Профиль 5 (Пт)' },
+                        { index: 6, id: 'prof6', name: 'Профиль 6 (Сб)' },
+                        { index: 7, id: 'prof7', name: 'Профиль 7 (Вс)' }
+                    ];
+                    
+                    for (let i = 0; i < profileMap.length; i++) {
+                        let btn = document.getElementById(profileMap[i].id);
+                        if (btn) btn.classList.remove('active');
+                    }
+                    
+                    let profileName = 'Неизвестно';
+                    for (let i = 0; i < profileMap.length; i++) {
+                        if (pointer == profileMap[i].index) {
+                            document.getElementById(profileMap[i].id).classList.add('active');
+                            profileName = profileMap[i].name;
+                            break;
+                        }
+                    }
+                    
+                    document.getElementById('profileStatus').innerHTML = '📌 Активный профиль: ' + profileName;
+                })
+                .catch(error => {
+                    console.log('Error:', error);
+                    document.getElementById('scheduleBody').innerHTML = '<tr><td colspan="3" style="text-align: center;">Ошибка загрузки</td></tr>';
+                });
+        }
+        
+        function checkMusicStatus() {
+            let saved = localStorage.getItem('music_on_break');
+            if (saved === 'true') currentMusicStatus = true;
+            else if (saved === 'false') currentMusicStatus = false;
+            
+            let savedMode = localStorage.getItem('music_mode_random');
+            if (savedMode === 'false') currentMusicMode = 'sequential';
+            else currentMusicMode = 'random';
+            
+            updateMusicDisplay();
+        }
+        
+        document.getElementById('musicOnBtn').onclick = function() {
+            currentMusicStatus = true;
+            localStorage.setItem('music_on_break', 'true');
+            updateMusicDisplay();
+        };
+        
+        document.getElementById('musicOffBtn').onclick = function() {
+            currentMusicStatus = false;
+            localStorage.setItem('music_on_break', 'false');
+            updateMusicDisplay();
+        };
+        
+        document.getElementById('randomBtn').onclick = function() {
+            currentMusicMode = 'random';
+            localStorage.setItem('music_mode_random', 'true');
+            updateMusicDisplay();
+        };
+        
+        document.getElementById('seqBtn').onclick = function() {
+            currentMusicMode = 'sequential';
+            localStorage.setItem('music_mode_random', 'false');
+            updateMusicDisplay();
+        };
+        
+        loadSchedule();
+        checkMusicStatus();
+        setInterval(loadSchedule, 10000);
+    </script>
+</body>
+</html>
